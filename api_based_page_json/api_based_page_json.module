@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * Contains api_based_page_json.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function api_based_page_json_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the api_based_page_json module.
+    case 'help.page.api_based_page_json':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Exposes page nodes as JSON based on API Key') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/*
+ * Implements hook_form_FORMID_alter().
+ */
+function api_based_page_json_form_system_site_information_settings_alter (&$form, &$form_state, $form_id) {
+  $site_api_key = \Drupal::config('system.site')->get('siteapikey');
+  // Site API key field.
+  $form['site_api_key'] = [
+    '#type' => 'textfield',
+    '#title' => t('Site API Key'),
+    '#default_value' => ($site_api_key == NULL) ? t('No API Key yet') : $site_api_key,
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#required' => TRUE,
+  ];
+  // Chaneg the action button value.
+  $form['actions']['submit']['#value'] = ($site_api_key != NULL) ? t('Update Configuration') : t('Save Configuration');
+  // Custom callback to save site api key.
+  $form['actions']['submit']['#submit'][]  = 'save_site_api_key_submit';
+}
+
+/*
+ * Custom submit callback to save site api key.
+ */
+function save_site_api_key_submit(&$form, &$form_state) {
+  $site_api_key = $form_state->getValue('site_api_key');
+  if ($site_api_key != NULL || $site_api_key != 'No API Key yet') {
+    $system_site_config = \Drupal::configFactory()->getEditable('system.site');
+    $system_site_config->set('siteapikey', $site_api_key);
+    if ($system_site_config->save(TRUE)) {
+      \Drupal::messenger()->addStatus(t('Site API Key has been saved with value - %siteapi', ['%siteapi' => $site_api_key]));
+    }
+  }
+}

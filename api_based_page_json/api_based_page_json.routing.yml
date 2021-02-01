@@ -1,0 +1,8 @@
+api_based_page_json.page_json:
+  path: '/page_json/{site_api}/{nid}'
+  defaults: 
+    _controller: '\Drupal\api_based_page_json\Controller\APIBasedPageJsonController::getNodeJSON' 
+    _title: 'Node JSON'
+  methods:  [GET]  
+  requirements: 
+    _permission: 'access content' 
